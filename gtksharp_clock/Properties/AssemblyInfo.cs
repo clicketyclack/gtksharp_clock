@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 [assembly: AssemblyTitle("gtksharp_clock")]
 [assembly: AssemblyDescription("Simple analog clock in GTK-C#")]
 [assembly: AssemblyConfiguration("Release")]
-[assembly: AssemblyCompany("Erik Mossberg <clickety@klantig.se>")
+[assembly: AssemblyCompany("Erik Mossberg <clickety@klantig.se>")]
 [assembly: AssemblyProduct("GTK-C# analog clock")]
 [assembly: AssemblyCopyright("${AuthorCopyright}")]
 [assembly: AssemblyTrademark("")]
