@@ -1,5 +1,6 @@
 ﻿using System;
 using Gtk;
+using NUnit.Framework;
 
 // http://www.mono-project.com/docs/gui/gtksharp/widgets/widget-colours/
 
@@ -10,7 +11,7 @@ namespace gtksharp_clock
 		public static void Main(string[] args)
 		{
 			Application.Init();
-			ClockWindow win = new ClockWindow ();
+			ClockWindow win = new ClockWindow();
 			win.Show();
 			Application.Run();
 		}
@@ -35,7 +36,6 @@ namespace gtksharp_clock
 
 			this.ModifyFg(StateType.Normal, black);
 			cf.ModifyFg(StateType.Normal, black);
-
 			this.DeleteEvent += DeleteWindow;
 
 			Add(cf);
@@ -57,15 +57,114 @@ namespace gtksharp_clock
 			this.ExposeEvent += OnExposed;
 		}
 
+		/// <summary>
+		/// Get the coordinates of a clock face arm.
+		/// </summary>
+		/// <param name="direction">The current digit pointed to by the clock arm. Accepts floats.</param>
+		/// <param name="wraparound">The max value of a clock arm. 12 for the hour hand, 60 for minutes and seconds. Other ranges are accepted as well, as long as they are greater than 0.</param>
+		/// <param name="length">The length of the clock arm.</param>
+		/// <returns>
+		/// Two int:s in an array, the x & y coordinates from the origin.
+		/// </returns>
+		public int[] getArmEndCoords(double direction, double wraparound, double length)
+		{
+			if (wraparound <= 0.0)
+			{
+				string message = String.Format("Expected a range greater than 0.0, got {0}.", wraparound);
+				throw new ArithmeticException(message);
+			}
+
+			// Get the coords for the arm end 
+			int[] toreturn = new int[2];
+			toreturn[0] = (int)Math.Round(length * Math.Sin(2.0 * Math.PI * direction / wraparound));
+			toreturn[1] = (int)Math.Round(length * Math.Cos(2.0 * Math.PI * direction / wraparound));
+			return toreturn;
+		}
+
+
+
 		public void OnExposed(object o, ExposeEventArgs args)
 		{
-			
-			Gdk.Color black = new Gdk.Color();
-			Gdk.Color.Parse("black", ref black);
+			this.drawArms();
+		}
 
-			this.ModifyFg(StateType.Normal, black);
 
-			this.GdkWindow.DrawLine(this.Style.BaseGC(StateType.Normal), 0, 0, 400, 300);
+		public void drawArms()
+		{
+
+			DateTime now = DateTime.Now;
+
+			Gdk.Color blue = new Gdk.Color();
+			Gdk.Color.Parse("blue", ref blue);
+
+			Gdk.GC gc = this.Style.BaseGC(StateType.Normal);
+			// gc.Foreground = blue; // Issue here?
+			gc.RgbFgColor = blue;
+			gc.SetLineAttributes(3, Gdk.LineStyle.Solid, Gdk.CapStyle.Round, Gdk.JoinStyle.Round);
+
+
+			int[] coords = this.getArmEndCoords(now.Second, 60.0, 300);
+			this.GdkWindow.DrawLine(this.Style.BaseGC(StateType.Normal), 300, 300, 300 + coords[0], 300 + coords[1]);
+
+			coords = this.getArmEndCoords(now.Minute + now.Second / 60.0, 60.0, 200);
+			this.GdkWindow.DrawLine(this.Style.BaseGC(StateType.Normal), 300, 300, 300 + coords[0], 300 + coords[1]);
+
+			coords = this.getArmEndCoords(now.Hour + now.Minute / 60.0, 12.0, 130);
+			this.GdkWindow.DrawLine(this.Style.BaseGC(StateType.Normal), 300, 300, 300 + coords[0], 300 + coords[1]);
+
+		}
+
+
+	}
+
+	[TestFixture]
+	public class ClockFaceTest
+	{
+		[Test]
+		public void TestArmLength()
+		{
+			ClockFace cf = new ClockFace();
+			int[] coords = new int[0];
+
+			double[] values = new double[] { -200, 0, 11.11, 20000 };
+			double[] maxes = new double[] { 20, 200 };
+			double[] lengths = new double[] { 4, 222, -50 };
+
+			foreach (double length in lengths)
+			{
+				foreach (double value in values)
+				{
+					foreach (double max in maxes)
+					{
+						coords = cf.getArmEndCoords(value, max, length);
+						double hyp_actual = coords[0] * coords[0] + coords[1] * coords[1];
+
+
+						double abs_len = Math.Abs(length);
+						double lower_expected = (abs_len - 1) * (abs_len - 1);
+						double upper_expected = (abs_len + 1) * (abs_len + 1);
+						String message = String.Format("Failed reasonable hypothenuse interval {0} <= {1}, <= {2}", lower_expected * 0.99, hyp_actual, upper_expected);
+						Assert.IsTrue(lower_expected <= hyp_actual && hyp_actual <= upper_expected, message);
+					}
+				}
+			}
+		}
+
+		[Test]
+		public void TestArmEnd()
+		{
+			ClockFace cf = new ClockFace();
+
+
+			Assert.AreEqual(2, cf.getArmEndCoords(0.0, 60.0, 300.0).Length);
+
+			// Hour hand for three o'clock
+			int[] coords = cf.getArmEndCoords(3.0, 12.0, 300.0);
+			Assert.IsTrue(299.0 <= coords[0] && coords[0] <= 300.0, "Actual coords are {0}, {1}", coords[0], coords[1]);
+
+
+
 		}
 	}
+
 }
