@@ -19,6 +19,9 @@ namespace gtksharp_clock
 
 	class ClockWindow : Window
 	{
+
+		private System.Timers.Timer timer;
+
 		public ClockWindow() : base("ClockWindow")
 		{
 			SetDefaultSize(250, 200);
@@ -40,7 +43,20 @@ namespace gtksharp_clock
 
 			Add(cf);
 			ShowAll();
+
+            this.timer = new System.Timers.Timer();
+			this.timer.Interval = 10;
+			this.timer.Elapsed += QueueRedraw;
+			this.timer.AutoReset = true;
+			this.timer.Enabled = true;
+
 		}
+
+		private void QueueRedraw(object o, System.Timers.ElapsedEventArgs e)
+		{
+			this.QueueDraw();
+		}
+
 
 		static void DeleteWindow(object obj, DeleteEventArgs args)
 		{
@@ -50,12 +66,15 @@ namespace gtksharp_clock
 
 	class ClockFace : DrawingArea
 	{
+		
 
 		public ClockFace() : base()
 		{
 			this.SetSizeRequest(600, 600);
 			this.ExposeEvent += OnExposed;
+
 		}
+
 
 		/// <summary>
 		/// Get the coordinates of a clock face arm.
@@ -77,11 +96,9 @@ namespace gtksharp_clock
 			// Get the coords for the arm end 
 			int[] toreturn = new int[2];
 			toreturn[0] = (int)Math.Round(length * Math.Sin(2.0 * Math.PI * direction / wraparound));
-			toreturn[1] = (int)Math.Round(length * Math.Cos(2.0 * Math.PI * direction / wraparound));
+			toreturn[1] = (int)Math.Round(- length * Math.Cos(2.0 * Math.PI * direction / wraparound));
 			return toreturn;
 		}
-
-
 
 		public void OnExposed(object o, ExposeEventArgs args)
 		{
@@ -102,8 +119,7 @@ namespace gtksharp_clock
 			gc.RgbFgColor = blue;
 			gc.SetLineAttributes(3, Gdk.LineStyle.Solid, Gdk.CapStyle.Round, Gdk.JoinStyle.Round);
 
-
-			int[] coords = this.getArmEndCoords(now.Second, 60.0, 300);
+			int[] coords = this.getArmEndCoords(now.Second + now.Millisecond/1000, 60.0, 300);
 			this.GdkWindow.DrawLine(this.Style.BaseGC(StateType.Normal), 300, 300, 300 + coords[0], 300 + coords[1]);
 
 			coords = this.getArmEndCoords(now.Minute + now.Second / 60.0, 60.0, 200);
@@ -163,7 +179,10 @@ namespace gtksharp_clock
 			Assert.IsTrue(299.0 <= coords[0] && coords[0] <= 300.0, "Actual coords are {0}, {1}", coords[0], coords[1]);
 
 
-
+			// Hour hand for 7:30.  -> -71, 71
+			coords = cf.getArmEndCoords(7.5, 12.0, 100.0);
+			Assert.IsTrue(-73.0 <= coords[0] && coords[0] <= -70.0, "For 7:30 x, actual coords are {0}, {1}", coords[0], coords[1]);
+			Assert.IsTrue(70.0 <= coords[1] && coords[1] <= 73.0, "For 7:30 y, actual coords are {0}, {1}", coords[0], coords[1]);
 		}
 	}
 
