@@ -144,6 +144,26 @@ namespace gtksharp_clock
 		}
 
 
+		private void drawHoursArm(double current_hours)
+		{
+			int[] coords = this.getArmEndCoords(current_hours, 12.0, 130);
+			this.GdkWindow.DrawLine(this.Style.BaseGC(StateType.Normal), 300, 300, 300 + coords[0], 300 + coords[1]);
+		}
+
+		private void drawMinutesArm(double current_minutes)
+		{
+
+			int[] coords = this.getArmEndCoords(current_minutes, 60.0, 200);
+			this.GdkWindow.DrawLine(this.Style.BaseGC(StateType.Normal), 300, 300, 300 + coords[0], 300 + coords[1]);
+		}
+
+		private void drawSecondsArm(double current_seconds)
+		{
+			int[] coords = this.getArmEndCoords(current_seconds, 60.0, 200);
+			this.GdkWindow.DrawLine(this.Style.BaseGC(StateType.Normal), 300, 300, 300 + coords[0], 300 + coords[1]);
+		}
+
+
 		public void drawArms()
 		{
 
@@ -155,14 +175,9 @@ namespace gtksharp_clock
 			gc.RgbFgColor = colors.blue;
 			gc.SetLineAttributes(3, Gdk.LineStyle.Solid, Gdk.CapStyle.Round, Gdk.JoinStyle.Round);
 
-			int[] coords = this.getArmEndCoords(now.Second + now.Millisecond / 1000, 60.0, 300);
-			this.GdkWindow.DrawLine(this.Style.BaseGC(StateType.Normal), 300, 300, 300 + coords[0], 300 + coords[1]);
-
-			coords = this.getArmEndCoords(now.Minute + now.Second / 60.0, 60.0, 200);
-			this.GdkWindow.DrawLine(this.Style.BaseGC(StateType.Normal), 300, 300, 300 + coords[0], 300 + coords[1]);
-
-			coords = this.getArmEndCoords(now.Hour + now.Minute / 60.0, 12.0, 130);
-			this.GdkWindow.DrawLine(this.Style.BaseGC(StateType.Normal), 300, 300, 300 + coords[0], 300 + coords[1]);
+			this.drawHoursArm(now.Hour + now.Minute / 60.0);
+			this.drawMinutesArm(now.Minute + now.Second / 60.0);
+			this.drawSecondsArm(now.Second + now.Millisecond / 1000);
 
 		}
 	}
