@@ -17,6 +17,41 @@ namespace gtksharp_clock
 		}
 	}
 
+	class ClockColors
+	{
+		/// <summary>
+		/// Singleton. See
+		/// https://msdn.microsoft.com/en-us/library/ms998558.aspx
+		/// </summary>
+		private static ClockColors instance;
+
+		public readonly Gdk.Color black = new Gdk.Color();
+		public readonly Gdk.Color grey = new Gdk.Color();
+		public readonly Gdk.Color blue = new Gdk.Color();
+
+		private ClockColors() {
+			// ClockColors.black
+			Gdk.Color.Parse("black", ref black);
+			//ClockColors.grey = new Gdk.Color();
+			Gdk.Color.Parse("grey", ref grey);
+			//ClockColors.blue = new Gdk.Color();
+			Gdk.Color.Parse("blue", ref blue);
+		}
+
+		public static ClockColors Instance
+		{
+			get
+			{
+				if (instance == null)
+				{
+					instance = new ClockColors();
+				}
+				return instance;
+			}
+		}
+	}
+
+
 	class ClockWindow : Window
 	{
 
@@ -28,17 +63,13 @@ namespace gtksharp_clock
 			SetPosition(WindowPosition.Center);
 
 			ClockFace cf = new ClockFace();
+			ClockColors colors = ClockColors.Instance;
 
-			Gdk.Color black = new Gdk.Color();
-			Gdk.Color.Parse("black", ref black);
-			Gdk.Color grey = new Gdk.Color();
-			Gdk.Color.Parse("grey", ref grey);
+			this.ModifyBg(StateType.Normal, colors.grey);
+			cf.ModifyBg(StateType.Normal, colors.grey);
 
-			this.ModifyBg(StateType.Normal, grey);
-			cf.ModifyBg(StateType.Normal, grey);
-
-			this.ModifyFg(StateType.Normal, black);
-			cf.ModifyFg(StateType.Normal, black);
+			this.ModifyFg(StateType.Normal, colors.black);
+			cf.ModifyFg(StateType.Normal, colors.black);
 			this.DeleteEvent += DeleteWindow;
 
 			Add(cf);
@@ -110,13 +141,11 @@ namespace gtksharp_clock
 		{
 
 			DateTime now = DateTime.Now;
-
-			Gdk.Color blue = new Gdk.Color();
-			Gdk.Color.Parse("blue", ref blue);
+			ClockColors colors = ClockColors.Instance;
 
 			Gdk.GC gc = this.Style.BaseGC(StateType.Normal);
 			// gc.Foreground = blue; // Issue here?
-			gc.RgbFgColor = blue;
+			gc.RgbFgColor = colors.blue;
 			gc.SetLineAttributes(3, Gdk.LineStyle.Solid, Gdk.CapStyle.Round, Gdk.JoinStyle.Round);
 
 			int[] coords = this.getArmEndCoords(now.Second + now.Millisecond/1000, 60.0, 300);
@@ -129,8 +158,6 @@ namespace gtksharp_clock
 			this.GdkWindow.DrawLine(this.Style.BaseGC(StateType.Normal), 300, 300, 300 + coords[0], 300 + coords[1]);
 
 		}
-
-
 	}
 
 	[TestFixture]
