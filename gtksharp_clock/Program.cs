@@ -26,16 +26,15 @@ namespace gtksharp_clock
 		/// </summary>
 		private static ClockColors instance;
 
+		// A single instance of color objects.
 		public readonly Gdk.Color black = new Gdk.Color();
 		public readonly Gdk.Color grey = new Gdk.Color();
 		public readonly Gdk.Color blue = new Gdk.Color();
 
-		private ClockColors() {
-			// ClockColors.black
+		private ClockColors()
+		{
 			Gdk.Color.Parse("black", ref black);
-			//ClockColors.grey = new Gdk.Color();
 			Gdk.Color.Parse("grey", ref grey);
-			//ClockColors.blue = new Gdk.Color();
 			Gdk.Color.Parse("blue", ref blue);
 		}
 
@@ -57,10 +56,10 @@ namespace gtksharp_clock
 	{
 		private ClockWindow win;
 
-		public ClockTimer(ClockWindow win)  : base()
+		public ClockTimer(ClockWindow win) : base()
 		{
-			
-            this.Interval = 10;
+
+			this.Interval = 10;
 			this.win = win;
 			this.Elapsed += QueueRedraw;
 			this.AutoReset = true;
@@ -76,7 +75,6 @@ namespace gtksharp_clock
 
 	class ClockWindow : Window
 	{
-
 
 		public ClockWindow() : base("ClockWindow")
 		{
@@ -99,9 +97,6 @@ namespace gtksharp_clock
 			ClockTimer ct = new ClockTimer(this);
 		}
 
-
-
-
 		static void DeleteWindow(object obj, DeleteEventArgs args)
 		{
 			Application.Quit();
@@ -110,7 +105,7 @@ namespace gtksharp_clock
 
 	class ClockFace : DrawingArea
 	{
-		
+
 
 		public ClockFace() : base()
 		{
@@ -118,7 +113,6 @@ namespace gtksharp_clock
 			this.ExposeEvent += OnExposed;
 
 		}
-
 
 		/// <summary>
 		/// Get the coordinates of a clock face arm.
@@ -140,7 +134,7 @@ namespace gtksharp_clock
 			// Get the coords for the arm end 
 			int[] toreturn = new int[2];
 			toreturn[0] = (int)Math.Round(length * Math.Sin(2.0 * Math.PI * direction / wraparound));
-			toreturn[1] = (int)Math.Round(- length * Math.Cos(2.0 * Math.PI * direction / wraparound));
+			toreturn[1] = (int)Math.Round(-length * Math.Cos(2.0 * Math.PI * direction / wraparound));
 			return toreturn;
 		}
 
@@ -161,7 +155,7 @@ namespace gtksharp_clock
 			gc.RgbFgColor = colors.blue;
 			gc.SetLineAttributes(3, Gdk.LineStyle.Solid, Gdk.CapStyle.Round, Gdk.JoinStyle.Round);
 
-			int[] coords = this.getArmEndCoords(now.Second + now.Millisecond/1000, 60.0, 300);
+			int[] coords = this.getArmEndCoords(now.Second + now.Millisecond / 1000, 60.0, 300);
 			this.GdkWindow.DrawLine(this.Style.BaseGC(StateType.Normal), 300, 300, 300 + coords[0], 300 + coords[1]);
 
 			coords = this.getArmEndCoords(now.Minute + now.Second / 60.0, 60.0, 200);
