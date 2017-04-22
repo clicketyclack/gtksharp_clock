@@ -146,6 +146,9 @@ namespace gtksharp_clock
 
 		private void drawHoursArm(double current_hours)
 		{
+			ClockColors colors = ClockColors.Instance;
+			Gdk.GC gc = this.Style.BaseGC(StateType.Normal);
+			gc.RgbFgColor = colors.black;
 			int[] coords = this.getArmEndCoords(current_hours, 12.0, 130);
 			this.GdkWindow.DrawLine(this.Style.BaseGC(StateType.Normal), 300, 300, 300 + coords[0], 300 + coords[1]);
 		}
@@ -153,12 +156,19 @@ namespace gtksharp_clock
 		private void drawMinutesArm(double current_minutes)
 		{
 
+			ClockColors colors = ClockColors.Instance;
+			Gdk.GC gc = this.Style.BaseGC(StateType.Normal);
+			gc.RgbFgColor = colors.blue;
 			int[] coords = this.getArmEndCoords(current_minutes, 60.0, 200);
 			this.GdkWindow.DrawLine(this.Style.BaseGC(StateType.Normal), 300, 300, 300 + coords[0], 300 + coords[1]);
 		}
 
 		private void drawSecondsArm(double current_seconds)
 		{
+			ClockColors colors = ClockColors.Instance;
+			Gdk.GC gc = this.Style.BaseGC(StateType.Normal);
+			gc.RgbFgColor = colors.black;
+			gc.SetLineAttributes(3, Gdk.LineStyle.Solid, Gdk.CapStyle.Round, Gdk.JoinStyle.Round);
 			int[] coords = this.getArmEndCoords(current_seconds, 60.0, 200);
 			this.GdkWindow.DrawLine(this.Style.BaseGC(StateType.Normal), 300, 300, 300 + coords[0], 300 + coords[1]);
 		}
@@ -166,18 +176,14 @@ namespace gtksharp_clock
 
 		public void drawArms()
 		{
+			double milliseconds_of_day = DateTime.Now.TimeOfDay.TotalMilliseconds;
+			double current_hour = (milliseconds_of_day / (60.0 * 60.0 * 1000.0)) % 24.0;
+			double current_minute = (milliseconds_of_day / (60.0 * 1000.0)) % 60.0;
+			double current_seconds = (milliseconds_of_day / 1000.0) % 60.0;
 
-			DateTime now = DateTime.Now;
-			ClockColors colors = ClockColors.Instance;
-
-			Gdk.GC gc = this.Style.BaseGC(StateType.Normal);
-			// gc.Foreground = blue; // Issue here?
-			gc.RgbFgColor = colors.blue;
-			gc.SetLineAttributes(3, Gdk.LineStyle.Solid, Gdk.CapStyle.Round, Gdk.JoinStyle.Round);
-
-			this.drawHoursArm(now.Hour + now.Minute / 60.0);
-			this.drawMinutesArm(now.Minute + now.Second / 60.0);
-			this.drawSecondsArm(now.Second + now.Millisecond / 1000);
+			this.drawHoursArm(current_hour);
+			this.drawMinutesArm(current_minute);
+			this.drawSecondsArm(current_seconds);
 
 		}
 	}
