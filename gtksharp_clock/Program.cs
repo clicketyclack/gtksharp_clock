@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Timers;
 using Gtk;
 using NUnit.Framework;
 
@@ -52,10 +53,30 @@ namespace gtksharp_clock
 	}
 
 
+	class ClockTimer : System.Timers.Timer
+	{
+		private ClockWindow win;
+
+		public ClockTimer(ClockWindow win)  : base()
+		{
+			
+            this.Interval = 10;
+			this.win = win;
+			this.Elapsed += QueueRedraw;
+			this.AutoReset = true;
+			this.Enabled = true;
+		}
+
+		private void QueueRedraw(object o, System.Timers.ElapsedEventArgs e)
+		{
+			this.win.QueueDraw();
+		}
+	}
+
+
 	class ClockWindow : Window
 	{
 
-		private System.Timers.Timer timer;
 
 		public ClockWindow() : base("ClockWindow")
 		{
@@ -75,18 +96,10 @@ namespace gtksharp_clock
 			Add(cf);
 			ShowAll();
 
-            this.timer = new System.Timers.Timer();
-			this.timer.Interval = 10;
-			this.timer.Elapsed += QueueRedraw;
-			this.timer.AutoReset = true;
-			this.timer.Enabled = true;
-
+			ClockTimer ct = new ClockTimer(this);
 		}
 
-		private void QueueRedraw(object o, System.Timers.ElapsedEventArgs e)
-		{
-			this.QueueDraw();
-		}
+
 
 
 		static void DeleteWindow(object obj, DeleteEventArgs args)
