@@ -112,7 +112,7 @@ namespace gtksharp_clock
 
 		public ClockFace() : base()
 		{
-			
+
 			this.SetSizeRequest(600, 600);
 			this.ExposeEvent += OnExposed;
 
@@ -144,6 +144,7 @@ namespace gtksharp_clock
 
 		public void OnExposed(object o, ExposeEventArgs args)
 		{
+			this.drawFaceMarkings();
 			this.drawArms();
 		}
 
@@ -156,21 +157,21 @@ namespace gtksharp_clock
 
 			int[][] coords = {
 				this.getArmEndCoords(current_hours, 12.0, -20),
-                this.getArmEndCoords(current_hours - 4.0, 12.0, 20),
-                this.getArmEndCoords(current_hours - 0.1, 12.0, 100),
-                this.getArmEndCoords(current_hours + 0.1, 12.0, 100),
+				this.getArmEndCoords(current_hours - 4.0, 12.0, 20),
+				this.getArmEndCoords(current_hours - 0.1, 12.0, 100),
+				this.getArmEndCoords(current_hours + 0.1, 12.0, 100),
 				this.getArmEndCoords(current_hours + 4.0, 12.0, 20),
-                this.getArmEndCoords(current_hours, 12.0, -20)
+				this.getArmEndCoords(current_hours, 12.0, -20)
 			};
 
 			var thepoints = from coord in coords
 							select new Gdk.Point(coord[0] + 300, coord[1] + 300);
-			
+
 			gc.RgbFgColor = colors.dark_grey;
-            this.GdkWindow.DrawPolygon(gc, true, thepoints.ToArray());
+			this.GdkWindow.DrawPolygon(gc, true, thepoints.ToArray());
 
 			gc.RgbFgColor = colors.white_smoke;
-            this.GdkWindow.DrawPolygon(gc, false, thepoints.ToArray());
+			this.GdkWindow.DrawPolygon(gc, false, thepoints.ToArray());
 		}
 
 		private void drawMinutesArm(double current_minutes)
@@ -178,19 +179,39 @@ namespace gtksharp_clock
 
 			ClockColors colors = ClockColors.Instance;
 			Gdk.GC gc = this.Style.BaseGC(StateType.Normal);
-			gc.RgbFgColor = colors.blue;
-			int[] coords = this.getArmEndCoords(current_minutes, 60.0, 200);
-			this.GdkWindow.DrawLine(this.Style.BaseGC(StateType.Normal), 300, 300, 300 + coords[0], 300 + coords[1]);
+			gc.SetLineAttributes(2, Gdk.LineStyle.Solid, Gdk.CapStyle.Butt, Gdk.JoinStyle.Miter);
+
+			int[][] coords = {
+				this.getArmEndCoords(current_minutes, 12.0, -15),
+				this.getArmEndCoords(current_minutes - 4.0, 12.0, 15),
+				this.getArmEndCoords(current_minutes - 0.07, 12.0, 180),
+				this.getArmEndCoords(current_minutes, 12.0, 185),
+				this.getArmEndCoords(current_minutes + 0.07, 12.0, 180),
+				this.getArmEndCoords(current_minutes + 4.0, 12.0, 15),
+				this.getArmEndCoords(current_minutes, 12.0, -15)
+			};
+
+			var thepoints = from coord in coords
+							select new Gdk.Point(coord[0] + 300, coord[1] + 300);
+
+			gc.RgbFgColor = colors.dark_grey;
+
+			this.GdkWindow.DrawPolygon(gc, true, thepoints.ToArray());
+
+			gc.RgbFgColor = colors.white_smoke;
+			this.GdkWindow.DrawPolygon(gc, false, thepoints.ToArray());
+
 		}
 
 		private void drawSecondsArm(double current_seconds)
 		{
 			ClockColors colors = ClockColors.Instance;
 			Gdk.GC gc = this.Style.BaseGC(StateType.Normal);
-			gc.RgbFgColor = colors.black;
-			gc.SetLineAttributes(3, Gdk.LineStyle.Solid, Gdk.CapStyle.Round, Gdk.JoinStyle.Round);
+			gc.RgbFgColor = colors.blue;
+			gc.SetLineAttributes(5, Gdk.LineStyle.Solid, Gdk.CapStyle.Round, Gdk.JoinStyle.Round);
 			int[] coords = this.getArmEndCoords(current_seconds, 60.0, 200);
-			this.GdkWindow.DrawLine(this.Style.BaseGC(StateType.Normal), 300, 300, 300 + coords[0], 300 + coords[1]);
+			this.GdkWindow.DrawLine(gc, 300, 300, 300 + coords[0], 300 + coords[1]);
+			this.GdkWindow.DrawArc(gc, true, 300 - 7, 300 - 7, 7 * 2, 7 * 2, 0, 360 * 64);
 		}
 
 
@@ -204,7 +225,34 @@ namespace gtksharp_clock
 			this.drawHoursArm(current_hour);
 			this.drawMinutesArm(current_minute);
 			this.drawSecondsArm(current_seconds);
+		}
 
+		/// <summary>
+		/// Call to draw the ticks around the edge of the clock face.
+		/// Only drawstyle supported is 12 black tick-marks.
+		/// </summary>
+		private void drawFaceMarkings()
+		{
+
+			ClockColors colors = ClockColors.Instance;
+			Gdk.GC gc = this.Style.BaseGC(StateType.Normal);
+			gc.SetLineAttributes(1, Gdk.LineStyle.Solid, Gdk.CapStyle.Butt, Gdk.JoinStyle.Miter);
+			gc.RgbFgColor = colors.black;
+
+			for (int hour = 0; hour <= 12; hour++)
+			{
+				int[][] coords = {
+							this.getArmEndCoords(hour - 0.02, 12.0, 240),
+							this.getArmEndCoords(hour - 0.02, 12.0, 270),
+							this.getArmEndCoords(hour + 0.02, 12.0, 270),
+							this.getArmEndCoords(hour + 0.02, 12.0, 240)
+						};
+
+				var thepoints = from coord in coords
+								select new Gdk.Point(coord[0] + 300, coord[1] + 300);
+				
+				this.GdkWindow.DrawPolygon(gc, true, thepoints.ToArray());
+			}
 		}
 	}
 
