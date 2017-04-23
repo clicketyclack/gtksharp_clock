@@ -13,7 +13,7 @@ namespace gtksharp_clock
 		public static void Main(string[] args)
 		{
 			Application.Init();
-			ClockWindow win = new ClockWindow();
+			var win = new ClockWindow();
 			win.Show();
 			Application.Run();
 		}
@@ -84,8 +84,8 @@ namespace gtksharp_clock
 			SetDefaultSize(250, 200);
 			SetPosition(WindowPosition.Center);
 
-			ClockFace cf = new ClockFace();
-			ClockColors colors = ClockColors.Instance;
+			var cf = new ClockFace();
+			var colors = ClockColors.Instance;
 
 			this.ModifyBg(StateType.Normal, colors.grey);
 			cf.ModifyBg(StateType.Normal, colors.grey);
@@ -97,7 +97,7 @@ namespace gtksharp_clock
 			Add(cf);
 			ShowAll();
 
-			ClockTimer ct = new ClockTimer(this);
+			new ClockTimer(this);
 		}
 
 		static void DeleteWindow(object obj, DeleteEventArgs args)
@@ -127,15 +127,15 @@ namespace gtksharp_clock
 		/// <returns>
 		/// Two int:s in an array, the x & y coordinates from the origin.
 		/// </returns>
-		public int[] getArmEndCoords(double direction, double wraparound, double length)
+		public int[] ConvertRadialCoords(double direction, double wraparound, double length)
 		{
 			if (wraparound <= 0.0)
 			{
-				string message = String.Format("Expected a range greater than 0.0, got {0}.", wraparound);
+				var message = String.Format("Expected a range greater than 0.0, got {0}.", wraparound);
 				throw new ArithmeticException(message);
 			}
 
-			// Get the coords for the arm end 
+			// Get the coords for the arm end.
 			int[] toreturn = new int[2];
 			toreturn[0] = (int)Math.Round(length * Math.Sin(2.0 * Math.PI * direction / wraparound));
 			toreturn[1] = (int)Math.Round(-length * Math.Cos(2.0 * Math.PI * direction / wraparound));
@@ -144,24 +144,24 @@ namespace gtksharp_clock
 
 		public void OnExposed(object o, ExposeEventArgs args)
 		{
-			this.drawFaceMarkings();
-			this.drawArms();
+			this.DrawFaceMarkings();
+			this.DrawArms();
 		}
 
 
-		private void drawHoursArm(double current_hours)
+		private void DrawArmHours(double current_hours)
 		{
-			ClockColors colors = ClockColors.Instance;
-			Gdk.GC gc = this.Style.BaseGC(StateType.Normal);
+			var colors = ClockColors.Instance;
+			var gc = this.Style.BaseGC(StateType.Normal);
 			gc.SetLineAttributes(2, Gdk.LineStyle.Solid, Gdk.CapStyle.Butt, Gdk.JoinStyle.Miter);
 
 			int[][] coords = {
-				this.getArmEndCoords(current_hours, 12.0, -20),
-				this.getArmEndCoords(current_hours - 4.0, 12.0, 20),
-				this.getArmEndCoords(current_hours - 0.1, 12.0, 100),
-				this.getArmEndCoords(current_hours + 0.1, 12.0, 100),
-				this.getArmEndCoords(current_hours + 4.0, 12.0, 20),
-				this.getArmEndCoords(current_hours, 12.0, -20)
+				this.ConvertRadialCoords(current_hours, 12.0, -20),
+				this.ConvertRadialCoords(current_hours - 4.0, 12.0, 20),
+				this.ConvertRadialCoords(current_hours - 0.1, 12.0, 100),
+				this.ConvertRadialCoords(current_hours + 0.1, 12.0, 100),
+				this.ConvertRadialCoords(current_hours + 4.0, 12.0, 20),
+				this.ConvertRadialCoords(current_hours, 12.0, -20)
 			};
 
 			var thepoints = from coord in coords
@@ -174,21 +174,21 @@ namespace gtksharp_clock
 			this.GdkWindow.DrawPolygon(gc, false, thepoints.ToArray());
 		}
 
-		private void drawMinutesArm(double current_minutes)
+		private void DrawArmMinutes(double current_minutes)
 		{
 
-			ClockColors colors = ClockColors.Instance;
-			Gdk.GC gc = this.Style.BaseGC(StateType.Normal);
+			var colors = ClockColors.Instance;
+			var gc = this.Style.BaseGC(StateType.Normal);
 			gc.SetLineAttributes(2, Gdk.LineStyle.Solid, Gdk.CapStyle.Butt, Gdk.JoinStyle.Miter);
 
 			int[][] coords = {
-				this.getArmEndCoords(current_minutes, 12.0, -15),
-				this.getArmEndCoords(current_minutes - 4.0, 12.0, 15),
-				this.getArmEndCoords(current_minutes - 0.07, 12.0, 180),
-				this.getArmEndCoords(current_minutes, 12.0, 185),
-				this.getArmEndCoords(current_minutes + 0.07, 12.0, 180),
-				this.getArmEndCoords(current_minutes + 4.0, 12.0, 15),
-				this.getArmEndCoords(current_minutes, 12.0, -15)
+				this.ConvertRadialCoords(current_minutes, 12.0, -15),
+				this.ConvertRadialCoords(current_minutes - 4.0, 12.0, 15),
+				this.ConvertRadialCoords(current_minutes - 0.07, 12.0, 180),
+				this.ConvertRadialCoords(current_minutes, 12.0, 185),
+				this.ConvertRadialCoords(current_minutes + 0.07, 12.0, 180),
+				this.ConvertRadialCoords(current_minutes + 4.0, 12.0, 15),
+				this.ConvertRadialCoords(current_minutes, 12.0, -15)
 			};
 
 			var thepoints = from coord in coords
@@ -203,49 +203,49 @@ namespace gtksharp_clock
 
 		}
 
-		private void drawSecondsArm(double current_seconds)
+		private void DrawArmSeconds(double current_seconds)
 		{
-			ClockColors colors = ClockColors.Instance;
-			Gdk.GC gc = this.Style.BaseGC(StateType.Normal);
+			var colors = ClockColors.Instance;
+			var gc = this.Style.BaseGC(StateType.Normal);
 			gc.RgbFgColor = colors.blue;
 			gc.SetLineAttributes(5, Gdk.LineStyle.Solid, Gdk.CapStyle.Round, Gdk.JoinStyle.Round);
-			int[] coords = this.getArmEndCoords(current_seconds, 60.0, 200);
+			var coords = this.ConvertRadialCoords(current_seconds, 60.0, 200);
 			this.GdkWindow.DrawLine(gc, 300, 300, 300 + coords[0], 300 + coords[1]);
 			this.GdkWindow.DrawArc(gc, true, 300 - 7, 300 - 7, 7 * 2, 7 * 2, 0, 360 * 64);
 		}
 
 
-		public void drawArms()
+		public void DrawArms()
 		{
 			double milliseconds_of_day = DateTime.Now.TimeOfDay.TotalMilliseconds;
 			double current_hour = (milliseconds_of_day / (60.0 * 60.0 * 1000.0)) % 24.0;
 			double current_minute = (milliseconds_of_day / (60.0 * 1000.0)) % 60.0;
 			double current_seconds = (milliseconds_of_day / 1000.0) % 60.0;
 
-			this.drawHoursArm(current_hour);
-			this.drawMinutesArm(current_minute);
-			this.drawSecondsArm(current_seconds);
+			this.DrawArmHours(current_hour);
+			this.DrawArmMinutes(current_minute);
+			this.DrawArmSeconds(current_seconds);
 		}
 
 		/// <summary>
 		/// Call to draw the ticks around the edge of the clock face.
 		/// Only drawstyle supported is 12 black tick-marks.
 		/// </summary>
-		private void drawFaceMarkings()
+		private void DrawFaceMarkings()
 		{
 
-			ClockColors colors = ClockColors.Instance;
-			Gdk.GC gc = this.Style.BaseGC(StateType.Normal);
+			var colors = ClockColors.Instance;
+			var gc = this.Style.BaseGC(StateType.Normal);
 			gc.SetLineAttributes(1, Gdk.LineStyle.Solid, Gdk.CapStyle.Butt, Gdk.JoinStyle.Miter);
 			gc.RgbFgColor = colors.black;
 
-			for (int hour = 0; hour <= 12; hour++)
+			for (var hour = 0; hour <= 12; hour++)
 			{
 				int[][] coords = {
-							this.getArmEndCoords(hour - 0.02, 12.0, 240),
-							this.getArmEndCoords(hour - 0.02, 12.0, 270),
-							this.getArmEndCoords(hour + 0.02, 12.0, 270),
-							this.getArmEndCoords(hour + 0.02, 12.0, 240)
+							this.ConvertRadialCoords(hour - 0.02, 12.0, 240),
+							this.ConvertRadialCoords(hour - 0.02, 12.0, 270),
+							this.ConvertRadialCoords(hour + 0.02, 12.0, 270),
+							this.ConvertRadialCoords(hour + 0.02, 12.0, 240)
 						};
 
 				var thepoints = from coord in coords
@@ -262,12 +262,12 @@ namespace gtksharp_clock
 		[Test]
 		public void TestArmLength()
 		{
-			ClockFace cf = new ClockFace();
-			int[] coords = new int[0];
+			var cf = new ClockFace();
+			var coords = new int[0];
 
-			double[] values = new double[] { -200, 0, 11.11, 20000 };
-			double[] maxes = new double[] { 20, 200 };
-			double[] lengths = new double[] { 4, 222, -50 };
+			var values = new double[] { -200, 0, 11.11, 20000 };
+			var maxes = new double[] { 20, 200 };
+			var lengths = new double[] { 4, 222, -50 };
 
 			foreach (double length in lengths)
 			{
@@ -275,14 +275,12 @@ namespace gtksharp_clock
 				{
 					foreach (double max in maxes)
 					{
-						coords = cf.getArmEndCoords(value, max, length);
-						double hyp_actual = coords[0] * coords[0] + coords[1] * coords[1];
-
-
-						double abs_len = Math.Abs(length);
-						double lower_expected = (abs_len - 1) * (abs_len - 1);
-						double upper_expected = (abs_len + 1) * (abs_len + 1);
-						String message = String.Format("Failed reasonable hypothenuse interval {0} <= {1}, <= {2}", lower_expected * 0.99, hyp_actual, upper_expected);
+						coords = cf.ConvertRadialCoords(value, max, length);
+						var hyp_actual = coords[0] * coords[0] + coords[1] * coords[1];
+						var abs_len = Math.Abs(length);
+						var lower_expected = (abs_len - 1) * (abs_len - 1);
+						var upper_expected = (abs_len + 1) * (abs_len + 1);
+						var message = String.Format("Failed reasonable hypothenuse interval {0} <= {1}, <= {2}", lower_expected * 0.99, hyp_actual, upper_expected);
 						Assert.IsTrue(lower_expected <= hyp_actual && hyp_actual <= upper_expected, message);
 					}
 				}
@@ -292,18 +290,18 @@ namespace gtksharp_clock
 		[Test]
 		public void TestArmEnd()
 		{
-			ClockFace cf = new ClockFace();
+			var cf = new ClockFace();
 
 
-			Assert.AreEqual(2, cf.getArmEndCoords(0.0, 60.0, 300.0).Length);
+			Assert.AreEqual(2, cf.ConvertRadialCoords(0.0, 60.0, 300.0).Length);
 
-			// Hour hand for three o'clock
-			int[] coords = cf.getArmEndCoords(3.0, 12.0, 300.0);
+			// Hour hand for three o'clock.
+			var coords = cf.ConvertRadialCoords(3.0, 12.0, 300.0);
 			Assert.IsTrue(299.0 <= coords[0] && coords[0] <= 300.0, "Actual coords are {0}, {1}", coords[0], coords[1]);
 
 
-			// Hour hand for 7:30.  -> -71, 71
-			coords = cf.getArmEndCoords(7.5, 12.0, 100.0);
+			// Hour hand for 7:30.  -> -71, 71.
+			coords = cf.ConvertRadialCoords(7.5, 12.0, 100.0);
 			Assert.IsTrue(-73.0 <= coords[0] && coords[0] <= -70.0, "For 7:30 x, actual coords are {0}, {1}", coords[0], coords[1]);
 			Assert.IsTrue(70.0 <= coords[1] && coords[1] <= 73.0, "For 7:30 y, actual coords are {0}, {1}", coords[0], coords[1]);
 		}
