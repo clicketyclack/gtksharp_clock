@@ -265,12 +265,14 @@ namespace gtksharp_clock
 	class ClockFace : DrawingArea
 	{
 
+		private TimeHMS time_hms;
 
 		public ClockFace() : base()
 		{
 
 			this.SetSizeRequest(600, 600);
 			this.ExposeEvent += OnExposed;
+			this.time_hms = new TimeHMS();
 
 		}
 
@@ -300,6 +302,7 @@ namespace gtksharp_clock
 
 		public void OnExposed(object o, ExposeEventArgs args)
 		{
+			this.time_hms.UpdateTime();
 			this.DrawFaceMarkings();
 			this.DrawArms();
 		}
@@ -338,13 +341,13 @@ namespace gtksharp_clock
 			gc.SetLineAttributes(2, Gdk.LineStyle.Solid, Gdk.CapStyle.Butt, Gdk.JoinStyle.Miter);
 
 			int[][] coords = {
-				this.ConvertRadialCoords(current_minutes, 12.0, -15),
-				this.ConvertRadialCoords(current_minutes - 4.0, 12.0, 15),
-				this.ConvertRadialCoords(current_minutes - 0.07, 12.0, 180),
-				this.ConvertRadialCoords(current_minutes, 12.0, 185),
-				this.ConvertRadialCoords(current_minutes + 0.07, 12.0, 180),
-				this.ConvertRadialCoords(current_minutes + 4.0, 12.0, 15),
-				this.ConvertRadialCoords(current_minutes, 12.0, -15)
+				this.ConvertRadialCoords(current_minutes, 60.0, -15),
+				this.ConvertRadialCoords(current_minutes - 20, 60.0, 15),
+				this.ConvertRadialCoords(current_minutes - 0.35, 60.0, 205),
+				this.ConvertRadialCoords(current_minutes, 60.0, 215),
+				this.ConvertRadialCoords(current_minutes + 0.35, 60.0, 205),
+				this.ConvertRadialCoords(current_minutes + 20, 60.0, 15),
+				this.ConvertRadialCoords(current_minutes, 60.0, -15)
 			};
 
 			var thepoints = from coord in coords
@@ -365,7 +368,8 @@ namespace gtksharp_clock
 			var gc = this.Style.BaseGC(StateType.Normal);
 			gc.RgbFgColor = colors.blue;
 			gc.SetLineAttributes(5, Gdk.LineStyle.Solid, Gdk.CapStyle.Round, Gdk.JoinStyle.Round);
-			var coords = this.ConvertRadialCoords(current_seconds, 60.0, 200);
+
+			var coords = this.ConvertRadialCoords(current_seconds, 60.0, 230);
 			this.GdkWindow.DrawLine(gc, 300, 300, 300 + coords[0], 300 + coords[1]);
 			this.GdkWindow.DrawArc(gc, true, 300 - 7, 300 - 7, 7 * 2, 7 * 2, 0, 360 * 64);
 		}
@@ -373,10 +377,9 @@ namespace gtksharp_clock
 
 		public void DrawArms()
 		{
-			double milliseconds_of_day = DateTime.Now.TimeOfDay.TotalMilliseconds;
-			double current_hour = (milliseconds_of_day / (60.0 * 60.0 * 1000.0)) % 24.0;
-			double current_minute = (milliseconds_of_day / (60.0 * 1000.0)) % 60.0;
-			double current_seconds = (milliseconds_of_day / 1000.0) % 60.0;
+			var current_hour = time_hms.CurrentHours;
+			var current_minute = time_hms.CurrentMinutes;
+			var current_seconds = time_hms.CurrentSeconds;
 
 			this.DrawArmHours(current_hour);
 			this.DrawArmMinutes(current_minute);
