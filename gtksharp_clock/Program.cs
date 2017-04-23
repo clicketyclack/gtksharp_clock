@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Timers;
 using Gtk;
+using System.Linq;
 using NUnit.Framework;
 
 // http://www.mono-project.com/docs/gui/gtksharp/widgets/widget-colours/
@@ -30,6 +31,8 @@ namespace gtksharp_clock
 		public readonly Gdk.Color black = new Gdk.Color();
 		public readonly Gdk.Color grey = new Gdk.Color();
 		public readonly Gdk.Color blue = new Gdk.Color();
+		public readonly Gdk.Color dark_grey = new Gdk.Color(0xA9, 0xA9, 0xA9);
+		public readonly Gdk.Color white_smoke = new Gdk.Color(0xF5, 0xF5, 0xF5);
 
 		private ClockColors()
 		{
@@ -109,6 +112,7 @@ namespace gtksharp_clock
 
 		public ClockFace() : base()
 		{
+			
 			this.SetSizeRequest(600, 600);
 			this.ExposeEvent += OnExposed;
 
@@ -148,9 +152,25 @@ namespace gtksharp_clock
 		{
 			ClockColors colors = ClockColors.Instance;
 			Gdk.GC gc = this.Style.BaseGC(StateType.Normal);
-			gc.RgbFgColor = colors.black;
-			int[] coords = this.getArmEndCoords(current_hours, 12.0, 130);
-			this.GdkWindow.DrawLine(this.Style.BaseGC(StateType.Normal), 300, 300, 300 + coords[0], 300 + coords[1]);
+			gc.SetLineAttributes(2, Gdk.LineStyle.Solid, Gdk.CapStyle.Butt, Gdk.JoinStyle.Miter);
+
+			int[][] coords = {
+				this.getArmEndCoords(current_hours, 12.0, -20),
+                this.getArmEndCoords(current_hours - 4.0, 12.0, 20),
+                this.getArmEndCoords(current_hours - 0.1, 12.0, 100),
+                this.getArmEndCoords(current_hours + 0.1, 12.0, 100),
+				this.getArmEndCoords(current_hours + 4.0, 12.0, 20),
+                this.getArmEndCoords(current_hours, 12.0, -20)
+			};
+
+			var thepoints = from coord in coords
+							select new Gdk.Point(coord[0] + 300, coord[1] + 300);
+			
+			gc.RgbFgColor = colors.dark_grey;
+            this.GdkWindow.DrawPolygon(gc, true, thepoints.ToArray());
+
+			gc.RgbFgColor = colors.white_smoke;
+            this.GdkWindow.DrawPolygon(gc, false, thepoints.ToArray());
 		}
 
 		private void drawMinutesArm(double current_minutes)
